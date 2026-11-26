@@ -4,11 +4,18 @@ window.VELOS_CONFIG = {
   supabaseAnonKey: "sb_publishable_GAB4g3KMYmI8N5SBgJx9ew_IxlSF76G"
 };
 
-// The profile menu/editor is a separate module so the chat app remains lightweight.
-const profileStylesheet = document.createElement('link');
-profileStylesheet.rel = 'stylesheet';
-profileStylesheet.href = 'profile.css';
-document.head.append(profileStylesheet);
-const profileScript = document.createElement('script');
-profileScript.src = 'profile.js';
-document.head.append(profileScript);
+// Load profile UI styles after the app styles, then load the profile module only
+// after the deferred chat script has installed its message/profile event handlers.
+const profileStyles = document.createElement('link');
+profileStyles.rel = 'stylesheet';
+profileStyles.href = 'profile.css?v=2';
+document.head.append(profileStyles);
+const chatAvatarStyles = document.createElement('link');
+chatAvatarStyles.rel = 'stylesheet';
+chatAvatarStyles.href = 'chat-avatar.css?v=1';
+document.head.append(chatAvatarStyles);
+document.addEventListener('DOMContentLoaded', () => {
+  const profileScript = document.createElement('script');
+  profileScript.src = 'profile.js?v=2';
+  document.body.append(profileScript);
+}, { once: true });

@@ -1,0 +1,40 @@
+/* Explicit message avatar sizing and image treatment for the Velos chat feed. */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 11px 9px;
+}
+.message-avatar {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px;
+  flex: 0 0 34px !important;
+  display: grid !important;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #414141;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #303030, #171717);
+  color: #f2f2f2;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+.message-avatar img {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.message-content { min-width: 0; flex: 1; }
+.message-meta { display: flex; align-items: center; gap: 8px; }
+.message-meta time { margin-left: auto; }
+.message-username { color: #737373; font-size: 8px; }
+@media (max-width: 650px) {
+  .message { gap: 9px; padding: 9px 4px; }
+  .message-avatar { width: 31px !important; height: 31px !important; min-width: 31px; flex-basis: 31px !important; }
+}
