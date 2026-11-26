@@ -1,32 +1,23 @@
-/* Compact profile page/dialog and points card */
+/* Account dropdown and profile editor */
+.account-menu{position:fixed;z-index:60;padding:10px;border:1px solid #303030;border-radius:12px;background:#0d0d0d;color:#f4f4f4;box-shadow:0 20px 60px #000b;}
+.account-menu-profile{display:flex;align-items:center;gap:11px;padding:8px 7px 12px;border-bottom:1px solid #262626}
+.account-menu-avatar{width:39px;height:39px;display:grid;place-items:center;overflow:hidden;border:1px solid #414141;border-radius:50%;background:#242424;color:#f5f5f5;font-weight:700}
+.account-menu-avatar img{width:100%;height:100%;object-fit:cover}
+.account-menu-identity{min-width:0;display:grid;gap:2px}.account-menu-identity strong{overflow:hidden;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.account-menu-identity span{color:#858585;font-size:9px}
+.account-menu-points{display:flex;align-items:center;gap:9px;margin:9px 0;padding:11px 9px;border:1px solid #292929;border-radius:8px;background:linear-gradient(120deg,#191919,#101010)}
+.account-menu-points .points-icon{width:28px;height:28px;display:grid;place-items:center;border:1px solid #373737;border-radius:8px;color:#eee;font-size:14px}
+.account-menu-points>span:nth-child(2){display:grid;gap:1px}.account-menu-points strong{font:800 17px 'Manrope',sans-serif}.account-menu-points small{color:#aaa;font-size:8px}.account-menu-points .points-caption{margin-left:auto;color:#888;font-size:8px}
+.account-menu-action,.account-menu-logout{width:100%;display:flex;align-items:center;gap:9px;padding:10px;border:0;border-radius:7px;background:transparent;color:#ddd;text-align:left;font-size:10px;cursor:pointer}
+.account-menu-action:hover,.account-menu-logout:hover{background:#1b1b1b}.account-menu-action b{margin-left:auto;color:#888;font-weight:400}.account-menu-logout{margin-top:4px;border-top:1px solid #262626;border-radius:0;color:#aaa}.account-menu-logout span{margin-left:auto;color:#777}
 .profile-modal{width:min(460px,calc(100% - 28px));max-height:88vh;overflow:auto;padding:25px;border:1px solid #303030;border-radius:12px;background:#0b0b0b;color:#f4f4f4;box-shadow:0 24px 80px #000b}
 .profile-modal::backdrop{background:rgba(0,0,0,.8);backdrop-filter:blur(4px)}
 .profile-modal>.section-kicker{margin:0 0 5px;color:#888;font-size:9px;font-weight:700;letter-spacing:1.2px}
-.profile-modal h2{margin:0;font:750 22px 'Manrope',sans-serif;letter-spacing:-.6px}
-.profile-modal .modal-intro{margin:6px 0 18px;color:#999;font-size:10px}
+.profile-modal h2{margin:0;font:750 22px 'Manrope',sans-serif;letter-spacing:-.6px}.profile-modal .modal-intro{margin:6px 0 18px;color:#999;font-size:10px}
 .profile-modal .modal-close{width:29px;height:29px;position:absolute;top:16px;right:16px;border:1px solid #303030;border-radius:6px;background:#171717;color:#ddd;font-size:19px;cursor:pointer}
-.profile-picture-row{display:flex;align-items:center;gap:14px;margin:17px 0}
-.profile-picture-preview{width:64px;height:64px;display:grid;place-items:center;overflow:hidden;border:1px solid #444;border-radius:50%;background:#222;color:#f2f2f2;font-size:20px;font-weight:700}
-.profile-picture-preview img,.avatar img{width:100%;height:100%;display:block;object-fit:cover}
-.upload-button{display:inline-flex;padding:8px 11px;border:1px solid #363636;border-radius:6px;background:#171717;color:#eee;font-size:10px;font-weight:600;cursor:pointer}
-.profile-picture-row small,.profile-modal .form-field small{display:block;margin-top:6px;color:#777;font-size:8px}
-.profile-modal .form-field{display:grid;gap:6px;margin-bottom:13px}
-.profile-modal .form-field label{color:#ccc;font-size:10px;font-weight:600}
-.profile-modal .form-field input{width:100%;padding:10px 11px;border:1px solid #303030;border-radius:6px;outline:none;background:#080808;color:#f1f1f1;font-size:10px}
-.profile-modal .form-field input:focus{border-color:#888}
-.username-input{display:flex;align-items:center;gap:5px;padding-left:10px;border:1px solid #303030;border-radius:6px;background:#080808;color:#888}
-.username-input:focus-within{border-color:#888}
-.username-input input{border:0!important;background:transparent!important}
-.username-input small{grid-column:1/-1}
-.profile-email{margin:0 0 12px;color:#8f8f8f;font-size:9px}
-.points-card{display:grid;grid-template-columns:38px 1fr;align-items:center;gap:3px 10px;margin:14px 0;padding:14px;border:1px solid #303030;border-radius:9px;background:linear-gradient(130deg,#171717,#0c0c0c)}
-.points-star{width:36px;height:36px;grid-row:span 2;display:grid;place-items:center;border:1px solid #3a3a3a;border-radius:10px;background:#222;color:#eee;font-size:18px}
-.points-card>div{display:flex;align-items:baseline;gap:7px}.points-card strong{font:800 21px 'Manrope',sans-serif;letter-spacing:-.5px}.points-card>div span{color:#aaa;font-size:10px;font-weight:600}
-.points-card p{grid-column:2;margin:0;color:#888;font-size:9px}
-.profile-modal .form-error{margin:0 0 8px;color:#ff9eae;font-size:10px}
-.profile-modal .primary-button.full{width:100%;min-height:39px;border:0;border-radius:6px;background:#f0f0f0;color:#090909;font-size:11px;font-weight:700;cursor:pointer}
-.profile-modal .primary-button:disabled{opacity:.55}
-.signout-button{width:100%;margin-top:11px;padding:9px;border:1px solid #303030;border-radius:6px;background:transparent;color:#bbb;font-size:10px;cursor:pointer}
-.signout-button:hover{border-color:#666;color:white}
-#user-avatar{overflow:hidden;padding:0;display:grid;place-items:center}
-#user-avatar.hidden{display:none!important}
+.profile-picture-row{display:flex;align-items:center;gap:14px;margin:17px 0}.profile-picture-preview{width:64px;height:64px;display:grid;place-items:center;overflow:hidden;border:1px solid #444;border-radius:50%;background:#222;color:#f2f2f2;font-size:20px;font-weight:700}
+.profile-picture-preview img,.avatar img{width:100%;height:100%;display:block;object-fit:cover}.upload-button{display:inline-flex;padding:8px 11px;border:1px solid #363636;border-radius:6px;background:#171717;color:#eee;font-size:10px;font-weight:600;cursor:pointer}.profile-picture-row small,.profile-modal .username-help{display:block;margin-top:6px;color:#777;font-size:8px}
+.profile-modal .form-field{display:grid;gap:6px;margin-bottom:13px}.profile-modal .form-field label{color:#ccc;font-size:10px;font-weight:600}.profile-modal .form-field input{width:100%;padding:10px 11px;border:1px solid #303030;border-radius:6px;outline:none;background:#080808;color:#f1f1f1;font-size:10px}.profile-modal .form-field input:focus{border-color:#888}
+.username-input{display:flex;align-items:center;gap:5px;padding-left:10px;border:1px solid #303030;border-radius:6px;background:#080808;color:#888}.username-input:focus-within{border-color:#888}.username-input input{border:0!important;background:transparent!important}
+.profile-email{margin:0 0 12px;color:#8f8f8f;font-size:9px}.profile-modal .form-error{margin:0 0 8px;color:#ff9eae;font-size:10px}.profile-modal .primary-button.full{width:100%;min-height:39px;border:0;border-radius:6px;background:#f0f0f0;color:#090909;font-size:11px;font-weight:700;cursor:pointer}.profile-modal .primary-button:disabled{opacity:.55}
+#user-avatar{overflow:hidden;padding:0;display:grid;place-items:center}#user-avatar.hidden{display:none!important}
+@media(max-width:650px){.account-menu{position:fixed!important;left:12px!important;right:12px;width:auto!important;top:auto!important;bottom:72px!important}.profile-modal{padding:21px}.profile-picture-preview{width:58px;height:58px}}
