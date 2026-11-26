@@ -23,8 +23,9 @@ const db = clientReady ? window.supabase.createClient(window.VELOS_CONFIG.supaba
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const state = { user: null, activeSpace: SPACES[0], messages: [], demo: !db, channel: null, toastTimer: null };
-const escapeHTML = (text = '') => String(text).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-const initials = (name = 'Velos member') => name.split(/\s+/).slice(0, 2).map((part) => part[0] || '').join('').toUpperCase() || 'V';
+const escapeHTML = (text = '') => String(text).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const initials = (name = 'Velos member') => name.split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || 'V';
+const messageProfileFields = 'display_name,username,avatar_url';
 
 function notify(message) {
   const toast = $('#toast'); toast.textContent = message; toast.classList.add('visible');
@@ -37,12 +38,11 @@ function relativeTime(value) {
   const days = Math.floor(hours / 24); return days < 7 ? `${days}d ago` : new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 function renderSpaces() {
-  const side = $('#space-list'); const discover = $('#discover-spaces');
-  side.replaceChildren(); discover.replaceChildren();
-  SPACES.forEach((space) => {
+  const side = $('#space-list'); const discover = $('#discover-spaces'); side.replaceChildren(); discover.replaceChildren();
+  SPACES.forEach(space => {
     const link = document.createElement('a'); link.href = '#chat'; link.className = `space-link ${space.tone}`; link.dataset.spaceId = space.id;
     link.innerHTML = `<i class="space-icon ${space.tone}">${space.icon}</i><span>${escapeHTML(space.name)}</span><span class="space-arrow">↗</span>`;
-    link.addEventListener('click', (event) => { event.preventDefault(); openSpace(space); }); side.append(link);
+    link.addEventListener('click', event => { event.preventDefault(); openSpace(space); }); side.append(link);
     const card = document.createElement('button'); card.type = 'button'; card.className = `discover-space ${space.tone}`; card.dataset.spaceId = space.id;
     card.innerHTML = `<span class="discover-icon ${space.tone}">${space.icon}</span><span class="discover-copy"><strong>${escapeHTML(space.name)}</strong><small>${escapeHTML(space.description)}</small></span><span class="discover-arrow">→</span>`;
     card.addEventListener('click', () => openSpace(space)); discover.append(card);
@@ -51,8 +51,7 @@ function renderSpaces() {
 function updateAccountUI() {
   const signedIn = Boolean(state.user);
   $('#header-signin').classList.toggle('hidden', signedIn); $('#header-signup').classList.toggle('hidden', signedIn); $('#user-avatar').classList.toggle('hidden', !signedIn);
-  const name = state.user?.user_metadata?.display_name || state.user?.email || '';
-  $('#user-avatar').textContent = signedIn ? initials(name) : '';
+  if (!signedIn) $('#user-avatar').textContent = '';
   $('#setup-notice').classList.toggle('hidden', !state.demo);
   $('#message-input').placeholder = signedIn ? `Message ${state.activeSpace.name}…` : 'Log in to send a message…';
   $('#composer-hint').textContent = signedIn ? 'Press Enter to send · Shift + Enter for a new line' : 'Join Velos to chat in this space';
@@ -64,47 +63,49 @@ function setAuthMode(mode) {
   $('#name-field').classList.toggle('hidden', !signup); $('#auth-name').required = signup;
   $('#auth-password').autocomplete = signup ? 'new-password' : 'current-password'; $('#auth-password').placeholder = signup ? 'At least 8 characters' : 'Your password'; $('#auth-password').minLength = signup ? 8 : 1;
   $('#auth-submit').innerHTML = signup ? 'Create my account <span>↗</span>' : 'Log in <span>↗</span>';
-  $$('.auth-switch button').forEach((button) => button.classList.toggle('active', button.dataset.authMode === mode)); $('#auth-error').textContent = '';
+  $$('.auth-switch button').forEach(button => button.classList.toggle('active', button.dataset.authMode === mode)); $('#auth-error').textContent = '';
 }
 function openAuth(mode = 'signup') {
   if (state.demo) return notify('Accounts and shared chat need the Supabase chat setup first.');
   setAuthMode(mode); $('#auth-modal').showModal();
 }
+function avatarHTML(profile, name) {
+  if (profile?.avatar_url) return `<img src="${escapeHTML(profile.avatar_url)}" alt="${escapeHTML(name)} profile picture">`;
+  return escapeHTML(initials(name));
+}
 function renderMessages() {
   const list = $('#message-list'); const query = $('#search-input').value.trim().toLowerCase();
-  const messages = state.messages.filter((message) => !query || `${message.body} ${message.author?.display_name || ''}`.toLowerCase().includes(query));
+  const messages = state.messages.filter(message => !query || `${message.body} ${message.author?.display_name || ''} ${message.author?.username || ''}`.toLowerCase().includes(query));
   list.replaceChildren();
-  messages.forEach((message) => {
-    const author = message.author?.display_name || 'Velos member'; const mine = state.user && message.author_id === state.user.id;
-    const row = document.createElement('article'); row.className = `message ${mine ? 'mine' : ''}`;
-    row.innerHTML = `<div class="message-avatar">${escapeHTML(initials(author))}</div><div class="message-content"><div class="message-meta"><strong>${escapeHTML(author)}</strong><time datetime="${escapeHTML(message.created_at)}">${relativeTime(message.created_at)}</time></div><p>${escapeHTML(message.body).replace(/\n/g, '<br>')}</p></div>`;
+  messages.forEach(message => {
+    const author = message.author?.display_name || 'Velos member';
+    const username = message.author?.username ? `@${message.author.username}` : '';
+    const mine = state.user && message.author_id === state.user.id;
+    const row = document.createElement('article'); row.className = `message ${mine ? 'mine' : ''}`; row.dataset.messageId = message.id;
+    row.innerHTML = `<div class="message-avatar">${avatarHTML(message.author, author)}</div><div class="message-content"><div class="message-meta"><strong>${escapeHTML(author)}</strong>${username ? `<span class="message-username">${escapeHTML(username)}</span>` : ''}<time datetime="${escapeHTML(message.created_at)}" title="${escapeHTML(new Date(message.created_at).toLocaleString())}">${escapeHTML(relativeTime(message.created_at))}</time></div><p>${escapeHTML(message.body).replace(/\n/g, '<br>')}</p></div>`;
     list.append(row);
   });
   $('#empty-room').classList.toggle('hidden', messages.length > 0);
   list.scrollTop = list.scrollHeight;
 }
-function stopRealtime() {
-  if (state.channel) { db?.removeChannel(state.channel); state.channel = null; }
-}
+function stopRealtime() { if (state.channel) { db?.removeChannel(state.channel); state.channel = null; } }
 function listenToSpace(space) {
-  if (!db) return;
-  stopRealtime();
-  state.channel = db.channel(`space:${space.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `space_id=eq.${space.id}` }, async (payload) => {
-    const { data } = await db.from('messages').select('id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(display_name,username)').eq('id', payload.new.id).single();
-    if (data && state.activeSpace.id === space.id && !state.messages.some((item) => item.id === data.id)) { state.messages.push(data); renderMessages(); }
+  if (!db) return; stopRealtime();
+  state.channel = db.channel(`space:${space.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `space_id=eq.${space.id}` }, async payload => {
+    const { data } = await db.from('messages').select(`id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(${messageProfileFields})`).eq('id', payload.new.id).single();
+    if (data && state.activeSpace.id === space.id && !state.messages.some(item => item.id === data.id)) { state.messages.push(data); renderMessages(); }
   }).subscribe();
 }
 async function loadMessages(space) {
   state.messages = [];
   if (state.demo) { state.messages = [...(DEMO_MESSAGES[space.id] || [])]; renderMessages(); return; }
   $('#message-list').innerHTML = '<div class="loading-state"><span class="spinner"></span> Loading the conversation…</div>';
-  const { data, error } = await db.from('messages').select('id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(display_name,username)').eq('space_id', space.id).order('created_at', { ascending: true }).limit(100);
+  const { data, error } = await db.from('messages').select(`id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(${messageProfileFields})`).eq('space_id', space.id).order('created_at', { ascending: true }).limit(100);
   if (error) { $('#message-list').replaceChildren(); renderMessages(); notify(`Could not load messages: ${error.message}`); return; }
   state.messages = data || []; renderMessages(); listenToSpace(space);
 }
 function openSpace(space) {
-  state.activeSpace = space;
-  $$('.space-link').forEach((link) => link.classList.toggle('selected', link.dataset.spaceId === space.id));
+  state.activeSpace = space; $$('.space-link').forEach(link => link.classList.toggle('selected', link.dataset.spaceId === space.id));
   $('#room-title').textContent = space.name; $('#room-description').textContent = space.description; $('#room-icon').textContent = space.icon;
   $('#room-icon').className = `room-icon ${space.tone}`; $('#message-input').placeholder = state.user ? `Message ${space.name}…` : 'Log in to send a message…';
   loadMessages(space); closeMobileNav();
@@ -115,11 +116,11 @@ async function sendMessage() {
   if (!state.user) return openAuth('login');
   const input = $('#message-input'); const body = input.value.trim(); if (!body) return;
   const button = $('#message-form').querySelector('[type=submit]'); button.disabled = true;
-  const { data, error } = await db.from('messages').insert({ space_id: state.activeSpace.id, author_id: state.user.id, body }).select('id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(display_name,username)').single();
+  const { data, error } = await db.from('messages').insert({ space_id: state.activeSpace.id, author_id: state.user.id, body }).select(`id,space_id,author_id,body,created_at,author:profiles!messages_author_id_fkey(${messageProfileFields})`).single();
   button.disabled = false;
   if (error) { notify(`Message could not be sent: ${error.message}`); return; }
   input.value = ''; input.style.height = 'auto';
-  if (!state.messages.some((message) => message.id === data.id)) { state.messages.push(data); renderMessages(); }
+  if (!state.messages.some(message => message.id === data.id)) { state.messages.push(data); renderMessages(); }
 }
 async function signOut() {
   if (!db) return; const { error } = await db.auth.signOut(); if (error) return notify(error.message);
@@ -128,10 +129,11 @@ async function signOut() {
 
 $('#header-signup').addEventListener('click', () => openAuth('signup'));
 $('#header-signin').addEventListener('click', () => openAuth('login'));
-$('#user-avatar').addEventListener('click', () => { if (confirm('Would you like to log out of Velos?')) signOut(); });
-$$('.auth-switch button').forEach((button) => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
-$$('[data-close]').forEach((button) => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
-$('#auth-form').addEventListener('submit', async (event) => {
+// The account menu module owns the avatar action when loaded; this fallback is for environments without it.
+if (!document.querySelector('#account-menu')) $('#user-avatar').addEventListener('click', () => { if (confirm('Would you like to log out of Velos?')) signOut(); });
+$$('.auth-switch button').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
+$$('[data-close]').forEach(button => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
+$('#auth-form').addEventListener('submit', async event => {
   event.preventDefault(); if (!db) return; const form = new FormData(event.currentTarget);
   const email = String(form.get('email')).trim(); const password = String(form.get('password')); const name = String(form.get('name') || '').trim(); const signup = !$('#name-field').classList.contains('hidden');
   const button = $('#auth-submit'); button.disabled = true; button.textContent = signup ? 'Creating account…' : 'Logging in…'; $('#auth-error').textContent = '';
@@ -142,24 +144,32 @@ $('#auth-form').addEventListener('submit', async (event) => {
   state.user = result.data.user; $('#auth-modal').close(); event.currentTarget.reset(); updateAccountUI(); notify(signup ? 'Welcome to Velos!' : 'Welcome back!');
 });
 db?.auth.onAuthStateChange((_event, session) => { state.user = session?.user || null; updateAccountUI(); renderMessages(); });
-$('#message-form').addEventListener('submit', (event) => { event.preventDefault(); sendMessage(); });
-$('#message-input').addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } });
-$('#message-input').addEventListener('input', (event) => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(event.target.scrollHeight, 140)}px`; });
+$('#message-form').addEventListener('submit', event => { event.preventDefault(); sendMessage(); });
+$('#message-input').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } });
+$('#message-input').addEventListener('input', event => { event.target.style.height = 'auto'; event.target.style.height = `${Math.min(event.target.scrollHeight, 140)}px`; });
 $('#emoji-button').addEventListener('click', () => { const input = $('#message-input'); input.value += ' 👋'; input.focus(); });
 $('#search-input').addEventListener('input', renderMessages);
-document.addEventListener('keydown', (event) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); $('#search-input').focus(); } if (event.key === 'Escape') closeMobileNav(); });
+document.addEventListener('keydown', event => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); $('#search-input').focus(); } if (event.key === 'Escape') closeMobileNav(); });
 $('#mobile-menu').addEventListener('click', () => { $('#sidebar').classList.add('open'); $('#mobile-scrim').classList.add('visible'); });
 $('#sidebar-close').addEventListener('click', closeMobileNav); $('#mobile-scrim').addEventListener('click', closeMobileNav);
 $('#mobile-account').addEventListener('click', () => state.user ? (confirm('Would you like to log out of Velos?') && signOut()) : openAuth('login'));
 $('#room-info').addEventListener('click', () => notify(state.activeSpace.description));
-$('#home-link').addEventListener('click', (event) => { event.preventDefault(); openSpace(SPACES[0]); });
+$('#home-link').addEventListener('click', event => { event.preventDefault(); openSpace(SPACES[0]); });
+
+// Profile editor dispatches this after a successful save. Refresh every already-rendered
+// message author in memory so their old messages immediately use their current identity.
+document.addEventListener('velos:profile-updated', event => {
+  const profile = event.detail;
+  if (!profile || !state.user || profile.user_id !== state.user.id) return;
+  state.messages = state.messages.map(message => message.author_id === state.user.id
+    ? { ...message, author: { ...message.author, display_name: profile.display_name, username: profile.username, avatar_url: profile.avatar_url } }
+    : message);
+  renderMessages();
+});
 
 async function start() {
   renderSpaces(); updateAccountUI();
-  if (db) {
-    const { data } = await db.auth.getSession(); state.user = data.session?.user || null;
-    db.auth.onAuthStateChange((_event, session) => { state.user = session?.user || null; updateAccountUI(); renderMessages(); });
-  }
+  if (db) { const { data } = await db.auth.getSession(); state.user = data.session?.user || null; }
   updateAccountUI(); await loadMessages(state.activeSpace);
 }
 start();
