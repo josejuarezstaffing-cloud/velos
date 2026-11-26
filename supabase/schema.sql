@@ -39,15 +39,9 @@ create index if not exists posts_score_idx on public.posts(score desc);
 create index if not exists posts_space_created_at_idx on public.posts(space, created_at desc);
 create index if not exists comments_post_created_at_idx on public.comments(post_id, created_at);
 
--- Each new auth account gets a public profile. The generated handle is unique and does not expose email.
 create or replace function public.create_velos_profile()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  chosen_name text;
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare chosen_name text;
 begin
   chosen_name := coalesce(nullif(trim(new.raw_user_meta_data ->> 'display_name'), ''), 'Velos member');
   insert into public.profiles (user_id, username, display_name)
@@ -58,15 +52,12 @@ end;
 $$;
 
 drop trigger if exists on_velos_user_created on auth.users;
-create trigger on_velos_user_created
-after insert on auth.users
-for each row execute function public.create_velos_profile();
+create trigger on_velos_user_created after insert on auth.users for each row execute function public.create_velos_profile();
 
 alter table public.profiles enable row level security;
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
 alter table public.post_votes enable row level security;
-
 grant select on public.profiles, public.posts, public.comments to anon, authenticated;
 grant insert, update on public.profiles to authenticated;
 grant insert, update, delete on public.posts to authenticated;
@@ -77,7 +68,6 @@ drop policy if exists "Profiles are public" on public.profiles;
 create policy "Profiles are public" on public.profiles for select using (true);
 drop policy if exists "Users can update their profile" on public.profiles;
 create policy "Users can update their profile" on public.profiles for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
 drop policy if exists "Posts are public" on public.posts;
 create policy "Posts are public" on public.posts for select using (true);
 drop policy if exists "Authenticated users can create posts" on public.posts;
@@ -86,28 +76,19 @@ drop policy if exists "Authors can update their posts" on public.posts;
 create policy "Authors can update their posts" on public.posts for update to authenticated using (auth.uid() = author_id) with check (auth.uid() = author_id);
 drop policy if exists "Authors can delete their posts" on public.posts;
 create policy "Authors can delete their posts" on public.posts for delete to authenticated using (auth.uid() = author_id);
-
 drop policy if exists "Comments are public" on public.comments;
 create policy "Comments are public" on public.comments for select using (true);
 drop policy if exists "Authenticated users can reply" on public.comments;
 create policy "Authenticated users can reply" on public.comments for insert to authenticated with check (auth.uid() = author_id);
 drop policy if exists "Authors can delete their comments" on public.comments;
 create policy "Authors can delete their comments" on public.comments for delete to authenticated using (auth.uid() = author_id);
-
+alter table public.post_votes enable row level security;
 drop policy if exists "Users can read their own votes" on public.post_votes;
 create policy "Users can read their own votes" on public.post_votes for select to authenticated using (auth.uid() = user_id);
 
--- Atomic vote toggle: each signed-in account has at most one vote per post.
 create or replace function public.toggle_post_vote(p_post_id uuid, p_value smallint)
-returns integer
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  current_user_id uuid := auth.uid();
-  existing_value smallint;
-  resulting_score integer;
+returns integer language plpgsql security definer set search_path = '' as $$
+declare current_user_id uuid := auth.uid(); existing_value smallint; resulting_score integer;
 begin
   if current_user_id is null then raise exception 'Sign in to vote.'; end if;
   if p_value not in (-1, 1) then raise exception 'Vote must be -1 or 1.'; end if;
@@ -127,6 +108,47 @@ begin
   return resulting_score;
 end;
 $$;
-
 revoke all on function public.toggle_post_vote(uuid, smallint) from public;
 grant execute on function public.toggle_post_vote(uuid, smallint) to authenticated;
+
+-- Velos public chat rooms (spaces).
+create table if not exists public.spaces (
+  id text primary key check (id in ('artificial-intelligence','careers','fitness','investing','prediction-markets','trading')),
+  name text not null,
+  description text not null,
+  created_at timestamptz not null default now()
+);
+insert into public.spaces (id, name, description) values
+ ('artificial-intelligence','Artificial intelligence','Ideas, tools, and the future of intelligent machines.'),
+ ('careers','Careers','Work, growth, interviews, and finding your next move.'),
+ ('fitness','Fitness','Training, health, and the habits that keep us moving.'),
+ ('investing','Investing','Long-term thinking about markets, money, and risk.'),
+ ('prediction-markets','Prediction markets','Forecasts, probabilities, and what the crowd thinks.'),
+ ('trading','Trading','Strategies, market structure, and trading tools.')
+on conflict (id) do update set name = excluded.name, description = excluded.description;
+
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  space_id text not null references public.spaces(id) on delete cascade,
+  author_id uuid not null constraint messages_author_id_fkey references public.profiles(user_id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+create index if not exists messages_space_created_idx on public.messages(space_id, created_at);
+alter table public.spaces enable row level security;
+alter table public.messages enable row level security;
+grant select on public.spaces to anon, authenticated;
+grant select on public.messages to anon, authenticated;
+grant insert on public.messages to authenticated;
+drop policy if exists "Spaces are public" on public.spaces;
+create policy "Spaces are public" on public.spaces for select using (true);
+drop policy if exists "Messages are public" on public.messages;
+create policy "Messages are public" on public.messages for select using (true);
+drop policy if exists "Signed in members can chat" on public.messages;
+create policy "Signed in members can chat" on public.messages for insert to authenticated with check (auth.uid() = author_id);
+
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages') then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end $$;

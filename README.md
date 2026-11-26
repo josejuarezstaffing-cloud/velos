@@ -1,38 +1,27 @@
-# Velos community forum
+# Velos spaces
 
-A responsive, dark-blue discussion forum for the Velos tech community. The static frontend includes public discussions, search, topic spaces, sorting, voting, replies, and email/password accounts. Supabase provides persistent shared data and authentication; the browser never handles or stores raw passwords itself.
+Velos is a responsive midnight-themed community chat. Members can join topic spaces and share messages in real time. Supabase provides email/password accounts, persistent chat history, and live message delivery.
 
 ## Run locally
 
-This is a static site: serve the repository root with any local web server, for example `python3 -m http.server 8000`, then open `http://localhost:8000`. Opening `index.html` directly may prevent browser APIs from working correctly.
+Serve the repository root with a local web server, e.g. `python3 -m http.server 8000`, then open `http://localhost:8000`.
 
-## Enable real accounts and shared posts
+## Enable accounts and shared real-time chat
 
-The repository intentionally does not contain project credentials. Connect a Supabase project to enable cross-user accounts and persistent posts:
+1. Open the Supabase project SQL Editor and run `supabase/schema.sql`. It adds six public spaces, messages, row-level security, and Realtime publication for new messages. The earlier discussion tables are retained.
+2. Confirm `config.js` contains your Supabase Project URL and public publishable/anon key. Never put a `service_role` secret in frontend code.
+3. In Supabase Authentication settings, set the Site URL and allowed redirect URLs for your deployed site; configure email confirmation and SMTP if required.
+4. Deploy the site, then test sign up, sign in, sending a message, switching spaces, and receiving a message from another browser/session.
 
-1. Create a Supabase project and open its SQL Editor.
-2. Run the contents of [`supabase/schema.sql`](supabase/schema.sql). This creates the tables, signup profile trigger, row-level security policies, and secure vote RPC.
-3. In Supabase **Project Settings → API**, copy the Project URL and the public publishable/anon key (never put a `service_role` secret in frontend code).
-4. Add those two public values to `config.js`:
+With no Supabase config the UI shows local sample messages. Sample mode is read-only and does not claim messages are shared.
 
-   ```js
-   window.VELOS_CONFIG = {
-     supabaseUrl: "https://YOUR_PROJECT.supabase.co",
-     supabaseAnonKey: "YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY"
-   };
-   ```
+## Spaces
 
-5. In Supabase **Authentication → URL Configuration**, set the Site URL to your deployed site and add local/deployment callback URLs to the redirect allow list. Configure email confirmation and SMTP according to your launch requirements.
-6. Deploy the static files to a host such as GitHub Pages, Netlify, or Cloudflare Pages. The URL and anon key are public browser configuration; database access is guarded by the RLS policies in the SQL schema.
+- Artificial intelligence
+- Careers
+- Fitness
+- Investing
+- Prediction markets
+- Trading
 
-Without project settings the site displays sample conversations in demo mode. Demo mode is deliberately read-only: it does not pretend to create accounts or publish public posts without a backend.
-
-## Included capabilities
-
-- Supabase Auth email/password signup, login, persisted sessions, and logout.
-- Public feed with topic filtering, search, latest/popular sorting, and responsive navigation.
-- Authenticated post and reply creation; public reading.
-- Authenticated up/down voting, one vote per user/post, and server-side atomic score updates.
-- Row-level security for profiles, posts, comments, and votes.
-
-This frontend does not include email/password reset, moderation tooling, spam controls, or a full profile editor. Configure rate limits, email delivery, abuse reporting/moderation, and backups in the Supabase project before opening a production community to the public.
+Messages are public to read; only authenticated members can send them. The SQL policies enforce this in the database. Configure moderation, rate limits, email delivery, backups, and abuse reporting before a public launch.
