@@ -11,44 +11,37 @@ titleMeta.name = 'apple-mobile-web-app-title';
 titleMeta.content = 'Velos - For The Heavily Disciplined';
 if (!titleMeta.isConnected) document.head.append(titleMeta);
 
-// Keep all space iconography consistent with the Velos upward-arrow brand.
+// Consistent upward-arrow space iconography. Only update changed text to avoid
+// triggering the observer indefinitely on its own mutations.
 const spaceIconStyles = document.createElement('style');
-spaceIconStyles.textContent = `
-  .space-icon, .discover-icon, .room-icon {
-    color: #dedede !important;
-    background: #171717 !important;
-    border-color: #333 !important;
-  }
-`;
+spaceIconStyles.textContent = `.space-icon,.discover-icon,.room-icon{color:#dedede!important;background:#171717!important;border-color:#333!important}`;
 document.head.append(spaceIconStyles);
 function applySpaceIcons() {
   document.querySelectorAll('.space-icon, .discover-icon, #room-icon').forEach(icon => {
-    // Avoid repeatedly replacing identical text: MutationObserver would otherwise
-    // observe its own write and keep the browser busy indefinitely.
     if (icon.textContent.trim() !== '↗') icon.textContent = '↗';
     icon.setAttribute('aria-hidden', 'true');
   });
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applySpaceIcons, { once: true });
 else applySpaceIcons();
-const iconObserver = new MutationObserver(applySpaceIcons);
-iconObserver.observe(document.body, { childList: true, subtree: true });
+new MutationObserver(applySpaceIcons).observe(document.body, { childList: true, subtree: true });
 
-// Keep feature styles after the base app CSS. Load profile actions after chat handlers.
-const profileStyles = document.createElement('link');
-profileStyles.rel = 'stylesheet';
-profileStyles.href = 'profile.css?v=3';
-document.head.append(profileStyles);
-const chatAvatarStyles = document.createElement('link');
-chatAvatarStyles.rel = 'stylesheet';
-chatAvatarStyles.href = 'chat-avatar.css?v=2';
-document.head.append(chatAvatarStyles);
-const iphoneStyles = document.createElement('link');
-iphoneStyles.rel = 'stylesheet';
-iphoneStyles.href = 'iphone.css?v=2';
-document.head.append(iphoneStyles);
+const stylesheets = [
+  ['profile.css?v=4', 'profile-styles'],
+  ['chat-avatar.css?v=3', 'chat-avatar-styles'],
+  ['iphone.css?v=3', 'iphone-styles'],
+  ['member-quick-card.css?v=1', 'member-quick-card-styles']
+];
+stylesheets.forEach(([href,id]) => {
+  if (document.getElementById(id)) return;
+  const link=document.createElement('link'); link.id=id; link.rel='stylesheet'; link.href=href; document.head.append(link);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   const profileScript = document.createElement('script');
-  profileScript.src = 'profile.js?v=3';
+  profileScript.src = 'profile.js?v=4';
   document.body.append(profileScript);
+  const memberCardScript = document.createElement('script');
+  memberCardScript.src = 'member-quick-card.js?v=1';
+  document.body.append(memberCardScript);
 }, { once: true });
