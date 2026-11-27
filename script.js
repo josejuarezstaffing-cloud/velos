@@ -1,9 +1,9 @@
 const SPACES = [
-  { id: 'artificial-intelligence', name: 'Artificial intelligence', icon: '✧', tone: 'ai', description: 'Ideas, tools, and the future of intelligent machines.' },
+  { id: 'artificial-intelligence', name: 'Artificial Intelligence', icon: '✧', tone: 'ai', description: 'Ideas, tools, and the future of intelligent machines.' },
   { id: 'careers', name: 'Careers', icon: '↗', tone: 'career', description: 'Work, growth, interviews, and finding your next move.' },
   { id: 'fitness', name: 'Fitness', icon: '⌁', tone: 'fitness', description: 'Training, health, and the habits that keep us moving.' },
   { id: 'investing', name: 'Investing', icon: '◈', tone: 'investing', description: 'Long-term thinking about markets, money, and risk.' },
-  { id: 'prediction-markets', name: 'Prediction markets', icon: '◎', tone: 'prediction', description: 'Forecasts, probabilities, and what the crowd thinks.' },
+  { id: 'prediction-markets', name: 'Prediction Markets', icon: '◎', tone: 'prediction', description: 'Forecasts, probabilities, and what the crowd thinks.' },
   { id: 'trading', name: 'Trading', icon: '⌁', tone: 'trading', description: 'Strategies, market structure, and trading tools.' }
 ];
 const DEMO_MESSAGES = {
@@ -23,7 +23,7 @@ const db = clientReady ? window.supabase.createClient(window.VELOS_CONFIG.supaba
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const state = { user: null, activeSpace: SPACES[0], messages: [], demo: !db, channel: null, toastTimer: null };
-const escapeHTML = (text = '') => String(text).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+const escapeHTML = text => String(text ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const initials = (name = 'Velos member') => name.split(/\s+/).slice(0, 2).map(part => part[0] || '').join('').toUpperCase() || 'V';
 const messageProfileFields = 'display_name,username,avatar_url';
 
@@ -129,7 +129,6 @@ async function signOut() {
 
 $('#header-signup').addEventListener('click', () => openAuth('signup'));
 $('#header-signin').addEventListener('click', () => openAuth('login'));
-// The account menu module owns the avatar action when loaded; this fallback is for environments without it.
 if (!document.querySelector('#account-menu')) $('#user-avatar').addEventListener('click', () => { if (confirm('Would you like to log out of Velos?')) signOut(); });
 $$('.auth-switch button').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
 $$('[data-close]').forEach(button => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
@@ -156,8 +155,6 @@ $('#mobile-account').addEventListener('click', () => state.user ? (confirm('Woul
 $('#room-info').addEventListener('click', () => notify(state.activeSpace.description));
 $('#home-link').addEventListener('click', event => { event.preventDefault(); openSpace(SPACES[0]); });
 
-// Profile editor dispatches this after a successful save. Refresh every already-rendered
-// message author in memory so their old messages immediately use their current identity.
 document.addEventListener('velos:profile-updated', event => {
   const profile = event.detail;
   if (!profile || !state.user || profile.user_id !== state.user.id) return;
