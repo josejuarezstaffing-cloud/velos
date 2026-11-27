@@ -27,7 +27,7 @@ new MutationObserver(applySpaceIcons).observe(document.body, { childList: true, 
   ['profile.css?v=5', 'profile-styles'],
   ['chat-avatar.css?v=4', 'chat-avatar-styles'],
   ['iphone.css?v=4', 'iphone-styles'],
-  ['responsive.css?v=1', 'responsive-styles'],
+  ['responsive.css?v=2', 'responsive-styles'],
   ['member-quick-card.css?v=2', 'member-quick-card-styles']
 ].forEach(([href,id]) => {
   let link=document.getElementById(id);
