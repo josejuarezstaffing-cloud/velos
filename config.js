@@ -23,7 +23,9 @@ spaceIconStyles.textContent = `
 document.head.append(spaceIconStyles);
 function applySpaceIcons() {
   document.querySelectorAll('.space-icon, .discover-icon, #room-icon').forEach(icon => {
-    icon.textContent = '↗';
+    // Avoid repeatedly replacing identical text: MutationObserver would otherwise
+    // observe its own write and keep the browser busy indefinitely.
+    if (icon.textContent.trim() !== '↗') icon.textContent = '↗';
     icon.setAttribute('aria-hidden', 'true');
   });
 }
