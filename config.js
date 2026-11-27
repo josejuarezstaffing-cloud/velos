@@ -4,15 +4,12 @@ window.VELOS_CONFIG = {
   supabaseAnonKey: "sb_publishable_GAB4g3KMYmI8N5SBgJx9ew_IxlSF76G"
 };
 
-// Brand title shown in browser tabs, bookmarks, and mobile app metadata.
 document.title = 'Velos - For The Heavily Disciplined';
 const titleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]') || document.createElement('meta');
 titleMeta.name = 'apple-mobile-web-app-title';
 titleMeta.content = 'Velos - For The Heavily Disciplined';
 if (!titleMeta.isConnected) document.head.append(titleMeta);
 
-// Consistent upward-arrow space iconography. Only update changed text to avoid
-// triggering the observer indefinitely on its own mutations.
 const spaceIconStyles = document.createElement('style');
 spaceIconStyles.textContent = `.space-icon,.discover-icon,.room-icon{color:#dedede!important;background:#171717!important;border-color:#333!important}`;
 document.head.append(spaceIconStyles);
@@ -26,22 +23,22 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 else applySpaceIcons();
 new MutationObserver(applySpaceIcons).observe(document.body, { childList: true, subtree: true });
 
-const stylesheets = [
-  ['profile.css?v=4', 'profile-styles'],
-  ['chat-avatar.css?v=3', 'chat-avatar-styles'],
-  ['iphone.css?v=3', 'iphone-styles'],
-  ['member-quick-card.css?v=1', 'member-quick-card-styles']
-];
-stylesheets.forEach(([href,id]) => {
-  if (document.getElementById(id)) return;
-  const link=document.createElement('link'); link.id=id; link.rel='stylesheet'; link.href=href; document.head.append(link);
+[
+  ['profile.css?v=5', 'profile-styles'],
+  ['chat-avatar.css?v=4', 'chat-avatar-styles'],
+  ['iphone.css?v=4', 'iphone-styles'],
+  ['member-quick-card.css?v=2', 'member-quick-card-styles']
+].forEach(([href,id]) => {
+  let link=document.getElementById(id);
+  if (!link) { link=document.createElement('link'); link.id=id; link.rel='stylesheet'; document.head.append(link); }
+  link.href=href;
 });
 
 document.addEventListener('DOMContentLoaded', () => {
   const profileScript = document.createElement('script');
-  profileScript.src = 'profile.js?v=4';
+  profileScript.src = 'profile.js?v=5';
   document.body.append(profileScript);
   const memberCardScript = document.createElement('script');
-  memberCardScript.src = 'member-quick-card.js?v=1';
+  memberCardScript.src = 'member-quick-card.js?v=2';
   document.body.append(memberCardScript);
 }, { once: true });
