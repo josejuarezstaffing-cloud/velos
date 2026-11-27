@@ -1,0 +1,146 @@
+/* Responsive refinements for compact phones, tablets, and touch-first layouts. */
+:root {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  --touch-target: 44px;
+}
+
+html {
+  min-width: 320px;
+  scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: clip;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+img, video, canvas, svg { max-width: 100%; }
+button, a, input, textarea, select { touch-action: manipulation; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline-offset: 3px; }
+
+/* Keep the existing desktop composition comfortable on smaller laptops/tablets. */
+@media (min-width: 651px) and (max-width: 1050px) {
+  .topbar { gap: clamp(10px, 2vw, 20px); padding-inline: clamp(18px, 3vw, 30px); }
+  .layout { gap: clamp(16px, 2.5vw, 28px); width: calc(100% - clamp(32px, 5vw, 56px)); }
+  .chat-main { min-width: 0; }
+  .room-heading { min-width: 0; }
+  .room-heading h2, .room-heading > p:last-child { overflow-wrap: anywhere; }
+  .message-composer textarea { min-width: 0; }
+}
+
+@media (max-width: 650px) {
+  html {
+    scroll-padding-top: calc(58px + env(safe-area-inset-top, 0px));
+    scroll-behavior: smooth;
+  }
+  body { min-height: 100svh; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    width: 100%;
+    box-sizing: border-box;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .layout {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    gap: 0;
+  }
+  .chat-main {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
+    overscroll-behavior: contain;
+  }
+  .right-rail { display: none; }
+  .chat-welcome, .room-header, .setup-notice, .home-space-menu,
+  .message-area, .message-composer { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .chat-welcome { gap: 10px; }
+  .welcome-copy { min-width: 0; }
+  .welcome-copy > p:last-child { max-width: 38ch; line-height: 1.55; }
+  .welcome-mark { flex: 0 0 auto; }
+  .setup-notice { margin-inline: 0; overflow-wrap: anywhere; line-height: 1.5; }
+
+  .room-header { align-items: center; padding: 12px; }
+  .room-heading { min-width: 0; flex: 1 1 auto; }
+  .room-heading h2, .room-heading > p:last-child { overflow-wrap: anywhere; }
+  .room-heading h2 { line-height: 1.25; }
+  .room-heading > p:last-child { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .room-members { max-width: 34%; font-size: 10px; }
+  .room-menu { flex: 0 0 40px; }
+
+  .message-area { min-height: 0; }
+  .message-list { min-width: 0; overflow-x: hidden; }
+  .message { min-width: 0; }
+  .message-content { min-width: 0; overflow-wrap: anywhere; }
+  .message-content > p { overflow-wrap: anywhere; word-break: break-word; }
+  .message-composer { width: 100%; }
+  .message-composer textarea { min-width: 0; width: 100%; max-width: 100%; font-size: 16px; }
+  .attach-button, .send-button, .mobile-bottom button, .mobile-menu, .sidebar-close { min-width: var(--touch-target); min-height: var(--touch-target); }
+  .mobile-bottom { z-index: 45; padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+
+  .sidebar {
+    width: min(320px, calc(100vw - 48px));
+    max-width: calc(100vw - 48px);
+    box-sizing: border-box;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: 18px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    overscroll-behavior: contain;
+  }
+  .spaces { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .space-link { min-height: 48px; }
+  .mobile-scrim { z-index: 49; }
+  .sidebar.open { z-index: 50; }
+
+  .modal {
+    box-sizing: border-box;
+    width: min(460px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100svh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .form-field input, .form-field textarea, .form-field select,
+  .profile-modal .form-field input, .username-input input { font-size: 16px; }
+  .toast { max-width: calc(100vw - 24px); box-sizing: border-box; overflow-wrap: anywhere; }
+}
+
+/* Preserve readable navigation and content on very narrow phones. */
+@media (max-width: 390px) {
+  .topbar { gap: 5px; }
+  .topbar-actions { min-width: 0; }
+  .topbar-actions .quiet-button { min-width: 0; }
+  .topbar-actions .primary-button { min-height: 40px; }
+  .search-box { min-width: 0; }
+  .search-box input { min-width: 0; }
+  .search-box kbd { display: none; }
+  .chat-main { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
+  .chat-welcome { padding-inline: 12px; }
+  .room-members { display: none; }
+  .home-space-menu { padding-inline: 13px; }
+}
+
+/* Landscape phones have limited vertical room; keep the chat surface usable. */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  .mobile-bottom { display: none; }
+  .chat-main { height: calc(100dvh - 58px - env(safe-area-inset-top, 0px)); min-height: 280px; }
+  .sidebar { padding-top: max(12px, env(safe-area-inset-top, 0px)); }
+  .modal { max-height: calc(100dvh - 16px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
